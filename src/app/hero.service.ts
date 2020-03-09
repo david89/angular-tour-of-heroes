@@ -55,11 +55,24 @@ export class HeroService {
   }
 
   deleteHero(hero: Hero | number): Observable<Hero> {
-    const id = typeof hero === 'number' ? hero : hero.id;
-    const url = `${this.heroesUrl}/${id}`;
+    const id: number = typeof hero === 'number' ? hero : hero.id;
+    const url: string = `${this.heroesUrl}/${id}`;
     return this.httpClient.delete<Hero>(url, this.httpOptions).pipe(
       tap(_ => this.log(`HeroService: deleted hero id=${id}`)),
       catchError(this.handleError<Hero>('deleteHero'))
+    );
+  }
+
+  searchHeroes(term: string): Observable<Hero[]> {
+    if (!term.trim()) return of([]);
+
+    return this.httpClient.get<Hero[]>(`${this.heroesUrl}/?name=${term}`).pipe(
+      tap(x =>
+        x.length
+          ? this.log(`found heroes matching term: ${term}`)
+          : this.log(`no heroes matching: ${term}`)
+      ),
+      catchError(this.handleError<Hero[]>('searchHeroes', []))
     );
   }
 
